@@ -2,7 +2,7 @@ import json
 import os
 import random
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
 try:
@@ -15,18 +15,8 @@ app = Flask(__name__)
 CORS(app)
 
 VALID_SIGNS = [
-    "aries",
-    "taurus",
-    "gemini",
-    "cancer",
-    "leo",
-    "virgo",
-    "libra",
-    "scorpio",
-    "sagittarius",
-    "capricorn",
-    "aquarius",
-    "pisces",
+    "aries", "taurus", "gemini", "cancer", "leo", "virgo",
+    "libra", "scorpio", "sagittarius", "capricorn", "aquarius", "pisces",
 ]
 
 SIGN_DATES = {
@@ -45,14 +35,8 @@ SIGN_DATES = {
 }
 
 FALLBACK_COLORS = [
-    "Crimson",
-    "Emerald",
-    "Sapphire",
-    "Amber",
-    "Silver",
-    "Midnight Blue",
-    "Lavender",
-    "Coral",
+    "Crimson", "Emerald", "Sapphire", "Amber",
+    "Silver", "Midnight Blue", "Lavender", "Coral",
 ]
 
 FOCUS_GUIDANCE = {
@@ -142,12 +126,12 @@ def build_fallback_horoscope(sign, focus):
     lucky_color = SIGN_COLORS.get(sign, random.choice(FALLBACK_COLORS))
     sign_opening = SIGN_QUOTES.get(
         sign,
-        f"{sign.capitalize()} moves through the day with quiet momentum, and subtle signals may prove more useful than dramatic ones.",
+        f"{sign.capitalize()} moves through the day with quiet momentum.",
     )
 
     reading = (
-        f"{sign_opening} {focus_opening} {focus_quote} {focus_line} Trust the pattern that keeps returning to your attention, "
-        f"because it may be pointing toward your next good step in this area of life."
+        f"{sign_opening} {focus_opening} {focus_quote} {focus_line} Trust the pattern that keeps "
+        f"returning to your attention, because it may be pointing toward your next good step."
     )
 
     return {
@@ -170,18 +154,23 @@ def get_anthropic_client():
 
 @app.route("/", methods=["GET"])
 def index():
-    return jsonify(
-        {
-            "name": "Horoscope API",
-            "version": "1.0",
-            "description": "Cross-language integration: Python API + JavaScript frontend",
-            "endpoints": {
-                "GET /": "API information",
-                "GET /signs": "List all valid zodiac signs",
-                "GET /horoscope/<sign>": "Get a horoscope for a zodiac sign",
-            },
-        }
-    )
+    # Serve the frontend HTML file
+    return send_from_directory(".", "index.html")
+
+
+@app.route("/api", methods=["GET"])
+def api_info():
+    return jsonify({
+        "name": "Horoscope Oracle API",
+        "version": "1.0",
+        "description": "Python Flask API powering the Horoscope Oracle frontend",
+        "endpoints": {
+            "GET /": "Frontend HTML",
+            "GET /api": "API information",
+            "GET /signs": "List all valid zodiac signs",
+            "GET /horoscope/<sign>": "Get a horoscope for a zodiac sign",
+        },
+    })
 
 
 @app.route("/signs", methods=["GET"])
@@ -194,26 +183,22 @@ def get_signs():
 def get_horoscope(sign):
     sign = sign.lower().strip()
     if sign not in VALID_SIGNS:
-        return jsonify(
-            {
-                "error": f"'{sign}' is not a valid zodiac sign.",
-                "valid_signs": VALID_SIGNS,
-            }
-        ), 400
+        return jsonify({
+            "error": f"'{sign}' is not a valid zodiac sign.",
+            "valid_signs": VALID_SIGNS,
+        }), 400
 
     focus = request.args.get("focus", "general").lower().strip() or "general"
     client = get_anthropic_client()
 
     if client is None:
-        return jsonify(
-            {
-                "sign": sign.capitalize(),
-                "dates": SIGN_DATES[sign],
-                "focus": focus,
-                "horoscope": build_fallback_horoscope(sign, focus),
-                "generated_by": "Local fallback generator",
-            }
-        )
+        return jsonify({
+            "sign": sign.capitalize(),
+            "dates": SIGN_DATES[sign],
+            "focus": focus,
+            "horoscope": build_fallback_horoscope(sign, focus),
+            "generated_by": "Local fallback generator",
+        })
 
     prompt = f"""You are a mystical astrologer. Generate a horoscope reading for {sign.capitalize()} ({SIGN_DATES[sign]}).
 
@@ -248,18 +233,17 @@ Respond in this exact JSON format with no markdown:
     except Exception as exc:
         return jsonify({"error": "Failed to generate horoscope.", "details": str(exc)}), 500
 
-    return jsonify(
-        {
-            "sign": sign.capitalize(),
-            "dates": SIGN_DATES[sign],
-            "focus": focus,
-            "horoscope": horoscope_data,
-            "generated_by": generated_by,
-        }
-    )
+    return jsonify({
+        "sign": sign.capitalize(),
+        "dates": SIGN_DATES[sign],
+        "focus": focus,
+        "horoscope": horoscope_data,
+        "generated_by": generated_by,
+    })
 
 
 if __name__ == "__main__":
-    print("Horoscope API running on http://localhost:5000")
-    print("JavaScript frontend can now call this Python API.")
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_ENV") == "development"
+    print(f"Horoscope Oracle API running on http://localhost:{port}")
+    app.run(host="0.0.0.0", port=port, debug=debug)
