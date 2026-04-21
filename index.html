@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Horoscope Oracle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0612;
+      --surface: rgba(18, 13, 32, 0.88);
+      --border: #2a1f45;
+      --accent: #c89bff;
+      --gold: #e8c87a;
+      --text: #e8e0f5;
+      --muted: #8b7cab;
+      --error: #ff9a9a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(200, 155, 255, 0.09), transparent 25%),
+        radial-gradient(circle at 80% 15%, rgba(232, 200, 122, 0.08), transparent 22%),
+        linear-gradient(180deg, #090511 0%, #12091d 100%);
+      font-family: "Crimson Pro", serif;
+      padding: 0 1rem 3rem;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.65) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 10%, rgba(255, 255, 255, 0.45) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 70%, rgba(255, 255, 255, 0.35) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 80%, rgba(255, 255, 255, 0.45) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 55%, rgba(255, 255, 255, 0.25) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 15%, rgba(255, 255, 255, 0.45) 0%, transparent 100%),
+        radial-gradient(1px 1px at 65% 90%, rgba(255, 255, 255, 0.35) 0%, transparent 100%);
+      z-index: 0;
+    }
+
+    header,
+    .card {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      text-align: center;
+      padding: 3.5rem 0 1.75rem;
+    }
+
+    .orb {
+      width: 84px;
+      height: 84px;
+      margin: 0 auto 1.3rem;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #e2c7ff, #7a3fbf 60%, #1a0a30);
+      box-shadow: 0 0 42px rgba(200, 155, 255, 0.5), 0 0 90px rgba(200, 155, 255, 0.18);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    h1 {
+      color: var(--gold);
+      font-family: "Cinzel Decorative", serif;
+      font-size: clamp(1.7rem, 5vw, 2.6rem);
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      margin-top: 0.5rem;
+      color: var(--muted);
+      font-size: 1rem;
+      font-style: italic;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding: 0.45rem 0.95rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(200, 155, 255, 0.08);
+      color: var(--accent);
+      font-size: 0.82rem;
+      letter-spacing: 0.03em;
+    }
+
+    .badge span {
+      color: var(--gold);
+      font-weight: 700;
+    }
+
+    .card {
+      width: min(580px, 100%);
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--surface);
+      box-shadow: 0 0 60px rgba(200, 155, 255, 0.07);
+      backdrop-filter: blur(10px);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.35rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.55rem;
+      color: var(--muted);
+      font-size: 0.79rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    select,
+    button {
+      width: 100%;
+      font: inherit;
+    }
+
+    select {
+      padding: 0.95rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b7cab' fill='none' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 2.5rem;
+    }
+
+    select:hover,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200, 155, 255, 0.12);
+    }
+
+    button {
+      padding: 1rem;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      background: linear-gradient(135deg, #7a3fbf, #4a1f8f);
+      box-shadow: 0 8px 28px rgba(122, 63, 191, 0.34);
+      cursor: pointer;
+      font-family: "Cinzel Decorative", serif;
+      font-size: 0.92rem;
+      letter-spacing: 0.08em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(122, 63, 191, 0.45);
+    }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .api-status {
+      margin-top: 0.75rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-style: italic;
+    }
+
+    .api-url {
+      color: var(--accent);
+      font-family: monospace;
+    }
+
+    .loader {
+      display: none;
+      align-items: center;
+      gap: 0.7rem;
+      margin-top: 1.25rem;
+      color: var(--muted);
+      font-size: 1rem;
+      font-style: italic;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    #result {
+      display: none;
+      margin-top: 1.6rem;
+      animation: fade-in 0.45s ease;
+    }
+
+    .sign-header {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sign-emoji {
+      font-size: 2.3rem;
+    }
+
+    .sign-name {
+      color: var(--gold);
+      font-family: "Cinzel Decorative", serif;
+      font-size: 1.15rem;
+    }
+
+    .sign-dates {
+      color: var(--muted);
+      font-size: 0.93rem;
+      font-style: italic;
+    }
+
+    .reading {
+      margin-bottom: 1rem;
+      font-size: 1.14rem;
+      line-height: 1.8;
+      font-style: italic;
+    }
+
+    .lucky-tip {
+      margin-bottom: 1rem;
+      padding: 0.85rem 1rem;
+      border-left: 3px solid var(--gold);
+      border-radius: 0 10px 10px 0;
+      background: rgba(232, 200, 122, 0.08);
+      color: var(--gold);
+      font-size: 0.98rem;
+    }
+
+    .meta {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .meta-pill {
+      padding: 0.45rem 0.85rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .meta-pill strong {
+      color: var(--accent);
+    }
+
+    .error {
+      margin-top: 1.2rem;
+      padding: 1rem;
+      border: 1px solid rgba(255, 80, 80, 0.24);
+      border-radius: 10px;
+      background: rgba(255, 80, 80, 0.08);
+      color: var(--error);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: monospace;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 42px rgba(200, 155, 255, 0.5), 0 0 90px rgba(200, 155, 255, 0.18);
+      }
+      50% {
+        box-shadow: 0 0 60px rgba(200, 155, 255, 0.8), 0 0 120px rgba(200, 155, 255, 0.3);
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding-top: 2.6rem;
+      }
+
+      .card {
+        padding: 1.3rem;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="orb"></div>
+    <h1>Horoscope Oracle</h1>
+    <div class="badge">Python API <span>to</span> JavaScript Frontend</div>
+  </header>
+
+  <main class="card">
+    <div class="row">
+      <div>
+        <label for="sign">Your Zodiac Sign</label>
+        <select id="sign">
+          <option value="">Choose Sign</option>
+          <option value="aries">Aries</option>
+          <option value="taurus">Taurus</option>
+          <option value="gemini">Gemini</option>
+          <option value="cancer">Cancer</option>
+          <option value="leo">Leo</option>
+          <option value="virgo">Virgo</option>
+          <option value="libra">Libra</option>
+          <option value="scorpio">Scorpio</option>
+          <option value="sagittarius">Sagittarius</option>
+          <option value="capricorn">Capricorn</option>
+          <option value="aquarius">Aquarius</option>
+          <option value="pisces">Pisces</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="focus">Focus Area</label>
+        <select id="focus">
+          <option value="general">General</option>
+          <option value="love">Love</option>
+          <option value="career">Career</option>
+          <option value="health">Health</option>
+          <option value="finances">Finances</option>
+        </select>
+      </div>
+    </div>
+
+    <button id="readBtn" type="button" onclick="getHoroscope()">Read My Stars</button>
+
+    <div class="api-status">
+      Calling Python API at <span class="api-url">http://localhost:5000/horoscope/{sign}</span>
+    </div>
+
+    <div id="loadingEl" class="loader">
+      <div class="spinner"></div>
+      Consulting the stars...
+    </div>
+
+    <div id="result"></div>
+  </main>
+
+  <script>
+    const API_BASE_URLS = [
+      "http://localhost:5000",
+      "http://127.0.0.1:5000"
+    ];
+    const SIGN_EMOJIS = {
+      aries: "Ar",
+      taurus: "Ta",
+      gemini: "Ge",
+      cancer: "Ca",
+      leo: "Le",
+      virgo: "Vi",
+      libra: "Li",
+      scorpio: "Sc",
+      sagittarius: "Sa",
+      capricorn: "Cp",
+      aquarius: "Aq",
+      pisces: "Pi"
+    };
+
+    async function fetchHoroscope(sign, focus) {
+      let lastError = null;
+
+      for (const baseUrl of API_BASE_URLS) {
+        try {
+          const response = await fetch(`${baseUrl}/horoscope/${sign}?focus=${focus}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || "API request failed.");
+          }
+
+          return { data, baseUrl };
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      throw lastError || new Error("Failed to fetch");
+    }
+
+    async function getHoroscope() {
+      const sign = document.getElementById("sign").value;
+      const focus = document.getElementById("focus").value;
+      const resultEl = document.getElementById("result");
+      const loadingEl = document.getElementById("loadingEl");
+      const button = document.getElementById("readBtn");
+      const apiUrlEl = document.querySelector(".api-url");
+
+      if (!sign) {
+        resultEl.innerHTML = '<div class="error">Please select your zodiac sign first.</div>';
+        resultEl.style.display = "block";
+        return;
+      }
+
+      resultEl.style.display = "none";
+      loadingEl.style.display = "flex";
+      button.disabled = true;
+      apiUrlEl.textContent = `Trying ${API_BASE_URLS.join(" then ")}`;
+
+      try {
+        const { data, baseUrl } = await fetchHoroscope(sign, focus);
+        apiUrlEl.textContent = `${baseUrl}/horoscope/${sign}?focus=${focus}`;
+        displayResult(data);
+      } catch (error) {
+        resultEl.innerHTML = `
+          <div class="error">
+            Could not connect to the Python API.<br />
+            Make sure <code>app.py</code> is running with <code>python app.py</code>.<br /><br />
+            <small>Error: ${error.message}</small><br />
+            <small>Windows tip: if <code>python</code> opens the Microsoft Store alias, run the real interpreter instead.</small>
+          </div>
+        `;
+        resultEl.style.display = "block";
+      } finally {
+        loadingEl.style.display = "none";
+        button.disabled = false;
+      }
+    }
+
+    function displayResult(data) {
+      const { sign, dates, focus, horoscope, generated_by: generatedBy } = data;
+      const token = SIGN_EMOJIS[sign.toLowerCase()] || "**";
+      const resultEl = document.getElementById("result");
+
+      resultEl.innerHTML = `
+        <div class="sign-header">
+          <div class="sign-emoji">${token}</div>
+          <div>
+            <div class="sign-name">${sign}</div>
+            <div class="sign-dates">${dates}</div>
+          </div>
+        </div>
+
+        <p class="reading">${horoscope.reading}</p>
+
+        <div class="lucky-tip">
+          <strong>Today's Tip:</strong> ${horoscope.lucky_tip}
+        </div>
+
+        <div class="meta">
+          <div class="meta-pill">Lucky Number: <strong>${horoscope.lucky_number}</strong></div>
+          <div class="meta-pill">Lucky Color: <strong>${horoscope.lucky_color}</strong></div>
+          <div class="meta-pill">Focus: <strong>${focus}</strong></div>
+          <div class="meta-pill">Source: <strong>${generatedBy}</strong></div>
+        </div>
+      `;
+
+      resultEl.style.display = "block";
+    }
+  </script>
+</body>
+</html>
